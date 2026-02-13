@@ -1,0 +1,6 @@
+.env.production.example
+
+DOCKER_PRODUCTION_GUIDE.md
+DOCKER_QUICKSTART.md
+KUBERNETES_DEPLOYMENT.md
+docker-compose.production.yml
