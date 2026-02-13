@@ -1,0 +1,145 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: atomix-backend
+  namespace: atomix-vidcodex
+  labels:
+    app: atomix-backend
+    version: v1
+spec:
+  replicas: 3
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  selector:
+    matchLabels:
+      app: atomix-backend
+  template:
+    metadata:
+      labels:
+        app: atomix-backend
+        version: v1
+    spec:
+      # Pod-level security context
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1001
+        runAsGroup: 1001
+        fsGroup: 1001
+        seccompProfile:
+          type: RuntimeDefault
+      
+      containers:
+        - name: backend
+          # IMPORTANT: Use immutable tags (version or SHA256 digest)
+          # Replace with your registry and version
+          image: your-registry.io/atomix-vidcodex-backend:0.0.1
+          imagePullPolicy: IfNotPresent
+          
+          ports:
+            - name: http
+              containerPort: 8080
+              protocol: TCP
+          
+          # Environment variables from ConfigMap
+          envFrom:
+            - configMapRef:
+                name: atomix-backend-config
+          
+          # Sensitive environment variables from Secret (optional)
+          # Uncomment if you have secrets
+          # env:
+          #   - name: API_KEY
+          #     valueFrom:
+          #       secretKeyRef:
+          #         name: atomix-backend-secrets
+          #         key: API_KEY
+          #   - name: JWT_SECRET
+          #     valueFrom:
+          #       secretKeyRef:
+          #         name: atomix-backend-secrets
+          #         key: JWT_SECRET
+          
+          # Container-level security context
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            runAsNonRoot: true
+            runAsUser: 1001
+            capabilities:
+              drop:
+                - ALL
+          
+          # Resource limits and requests
+          resources:
+            requests:
+              cpu: "500m"
+              memory: "512Mi"
+            limits:
+              cpu: "2000m"
+              memory: "2Gi"
+          
+          # Liveness probe - checks if container is alive
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: http
+              scheme: HTTP
+            initialDelaySeconds: 30
+            periodSeconds: 30
+            timeoutSeconds: 5
+            successThreshold: 1
+            failureThreshold: 3
+          
+          # Readiness probe - checks if container is ready to serve traffic
+          readinessProbe:
+            httpGet:
+              path: /ready
+              port: http
+              scheme: HTTP
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            timeoutSeconds: 3
+            successThreshold: 1
+            failureThreshold: 3
+          
+          # Volume mounts for writable directories (readOnlyRootFilesystem requires this)
+          volumeMounts:
+            - name: tmp
+              mountPath: /tmp
+            - name: uploads
+              mountPath: /app/uploads
+            - name: outputs
+              mountPath: /app/outputs
+            - name: logs
+              mountPath: /app/logs
+      
+      # Volumes
+      volumes:
+        - name: tmp
+          emptyDir: {}
+        - name: uploads
+          emptyDir:
+            sizeLimit: 10Gi
+        - name: outputs
+          emptyDir:
+            sizeLimit: 10Gi
+        - name: logs
+          emptyDir:
+            sizeLimit: 1Gi
+      
+      # Node affinity and tolerations (optional - uncomment if needed)
+      # affinity:
+      #   podAntiAffinity:
+      #     preferredDuringSchedulingIgnoredDuringExecution:
+      #       - weight: 100
+      #         podAffinityTerm:
+      #           labelSelector:
+      #             matchExpressions:
+      #               - key: app
+      #                 operator: In
+      #                 values:
+      #                   - atomix-backend
+      #           topologyKey: kubernetes.io/hostname

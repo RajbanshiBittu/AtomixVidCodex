@@ -1,0 +1,30 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: atomix-backend-config
+  namespace: atomix-vidcodex
+  labels:
+    app: atomix-backend
+data:
+  # Server Configuration
+  PORT: "8080"
+  HOST: "0.0.0.0"
+  NODE_ENV: "production"
+  
+  # File Upload Configuration
+  MAX_FILE_SIZE: "524288000"  # 500MB
+  
+  # Rate Limiting
+  RATE_LIMIT_WINDOW_MS: "900000"  # 15 minutes
+  RATE_LIMIT_MAX_REQUESTS: "100"
+  
+  # Auto Cleanup
+  AUTO_CLEANUP_ENABLED: "true"
+  CLEANUP_INTERVAL_HOURS: "6"
+  CLEANUP_AGE_HOURS: "24"
+  
+  # Logging
+  LOG_LEVEL: "info"
+  
+  # CORS - Production domains (DO NOT include localhost in production)
+  ALLOWED_ORIGINS: "https://atomixtools.com,https://www.atomixtools.com"

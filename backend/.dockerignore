@@ -1,0 +1,88 @@
+# Dependencies
+node_modules
+npm-debug.log
+yarn-debug.log
+yarn-error.log
+
+# Testing
+coverage
+.nyc_output
+*.test.js
+tests
+__tests__
+
+# Build outputs
+dist
+build
+
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
+
+# Runtime data
+pids
+*.pid
+*.seed
+*.pid.lock
+
+# Temporary files
+tmp
+temp
+*.tmp
+.cache
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE
+.idea
+.vscode
+*.swp
+*.swo
+*~
+
+# Git
+.git
+.gitignore
+.gitattributes
+
+# Documentation
+README.md
+CHANGELOG.md
+LICENSE
+docs
+*.md
+
+# CI/CD
+.github
+.gitlab-ci.yml
+.travis.yml
+.circleci
+
+# Docker
+Dockerfile*
+docker-compose*.yml
+.dockerignore
+
+# Environment files (NEVER copy into image)
+.env
+.env.local
+.env.*.local
+.env.development
+.env.production
+.env.test
+
+# Sample/test files
+samples
+inputs/*.mp4
+inputs/*.avi
+inputs/*.mov
+
+# Output files (generated at runtime)
+outputs
+uploads

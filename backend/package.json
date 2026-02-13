@@ -1,0 +1,63 @@
+{
+  "name": "atomix-vidcodex-backend",
+  "version": "1.0.0",
+  "description": "Production-ready backend API for converting multiple video formats (AVI, MOV, MKV, WMV, FLV, MPEG, 3GP, 3G2, WEBM) to MP4 using FFmpeg",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "nodemon server.js",
+    "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js",
+    "test:unit": "node --experimental-vm-modules node_modules/jest/bin/jest.js tests/unit",
+    "test:integration": "node --experimental-vm-modules node_modules/jest/bin/jest.js tests/integration",
+    "test:e2e": "node --experimental-vm-modules node_modules/jest/bin/jest.js tests/e2e",
+    "test:watch": "node --experimental-vm-modules node_modules/jest/bin/jest.js --watch",
+    "test:coverage": "node --experimental-vm-modules node_modules/jest/bin/jest.js --coverage",
+    "test:report": "node --experimental-vm-modules node_modules/jest/bin/jest.js tests/e2e/allConversions.test.js",
+    "lint": "echo \"Linting not configured yet\"",
+    "logs": "tail -f logs/combined.log",
+    "errors": "tail -f logs/error.log",
+    "cleanup": "node -e \"console.log('Use DELETE /api/v1/convert/cleanup endpoint')\""
+  },
+  "keywords": [
+    "video",
+    "converter",
+    "ffmpeg",
+    "mp4",
+    "avi",
+    "mov",
+    "mkv",
+    "wmv",
+    "flv",
+    "mpeg",
+    "3gp",
+    "webm",
+    "video-processing",
+    "api",
+    "backend"
+  ],
+  "author": "Atomix-VidCodex Team",
+  "license": "ISC",
+  "type": "module",
+  "dependencies": {
+    "cors": "^2.8.6",
+    "dotenv": "^17.2.4",
+    "express": "^5.2.1",
+    "express-rate-limit": "^8.2.1",
+    "ffmpeg-static": "^5.3.0",
+    "file-type": "^21.3.0",
+    "helmet": "^8.1.0",
+    "joi": "^18.0.2",
+    "multer": "^2.0.2",
+    "nodemon": "^3.1.11",
+    "uuid": "^13.0.0",
+    "winston": "^3.19.0"
+  },
+  "devDependencies": {
+    "@jest/globals": "^29.7.0",
+    "exceljs": "^4.4.0",
+    "form-data": "^4.0.5",
+    "jest": "^29.7.0",
+    "node-fetch": "^2.7.0",
+    "supertest": "^6.3.4"
+  }
+}

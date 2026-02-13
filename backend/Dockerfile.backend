@@ -1,0 +1,69 @@
+# ============================================================
+# STAGE 1: BUILD STAGE
+# ============================================================
+FROM node:20-alpine AS builder
+
+# Install build dependencies and FFmpeg
+RUN apk add --no-cache \
+    python3 \
+    make \
+    g++ \
+    ffmpeg
+
+# Create app directory
+WORKDIR /app
+
+# Copy package files for dependency installation
+COPY package*.json ./
+
+# Install ALL dependencies (including devDependencies for build)
+RUN npm ci --only=production && \
+    npm cache clean --force
+
+# Copy application source code
+COPY . .
+
+# ============================================================
+# STAGE 2: RUNTIME STAGE (PRODUCTION)
+# ============================================================
+FROM node:20-alpine
+
+# Install runtime dependencies only
+RUN apk add --no-cache \
+    ffmpeg \
+    && rm -rf /var/cache/apk/*
+
+# Create non-root user and group
+RUN addgroup -g 1001 -S nodejs && \
+    adduser -S -u 1001 -G nodejs nodejs
+
+# Create app directory
+WORKDIR /app
+
+# Copy package files
+COPY --chown=nodejs:nodejs package*.json ./
+
+# Install production dependencies only
+RUN npm ci --only=production && \
+    npm cache clean --force && \
+    rm -rf /tmp/*
+
+# Copy application from builder
+COPY --chown=nodejs:nodejs --from=builder /app .
+
+# Create necessary directories with proper permissions
+RUN mkdir -p /app/uploads /app/outputs /app/logs && \
+    chown -R nodejs:nodejs /app/uploads /app/outputs /app/logs
+
+# Switch to non-root user
+USER nodejs
+
+# Expose port (configurable via ENV)
+EXPOSE ${PORT:-8080}
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
+    CMD node -e "require('http').get('http://localhost:${PORT:-8080}/', (r) => {process.exit(r.statusCode === 200 ? 0 : 1)})"
+
+# Start application
+CMD ["node", "server.js"]

@@ -1,0 +1,94 @@
+version: '3.9'
+
+services:
+  backend:
+    image: ${REGISTRY}/atomix-vidcodex-backend:${VERSION}
+    container_name: atomix-backend
+    restart: unless-stopped
+    read_only: true
+    tmpfs:
+      - /tmp:rw,noexec,nosuid,size=100m
+      - /app/uploads:rw,noexec,nosuid,size=500m
+      - /app/outputs:rw,noexec,nosuid,size=2g
+    ports:
+      - "${BACKEND_PORT:-8080}:${PORT:-8080}"
+    environment:
+      PORT: ${PORT:-8080}
+      HOST: 0.0.0.0
+      NODE_ENV: production
+      MAX_FILE_SIZE: ${MAX_FILE_SIZE:-524288000}
+      RATE_LIMIT_WINDOW_MS: ${RATE_LIMIT_WINDOW_MS:-900000}
+      RATE_LIMIT_MAX_REQUESTS: ${RATE_LIMIT_MAX_REQUESTS:-100}
+      AUTO_CLEANUP_ENABLED: ${AUTO_CLEANUP_ENABLED:-true}
+      CLEANUP_INTERVAL_HOURS: ${CLEANUP_INTERVAL_HOURS:-6}
+      CLEANUP_AGE_HOURS: ${CLEANUP_AGE_HOURS:-24}
+      ALLOWED_ORIGINS: ${ALLOWED_ORIGINS}
+      LOG_LEVEL: ${LOG_LEVEL:-info}
+    deploy:
+      resources:
+        limits:
+          cpus: '2'
+          memory: 4G
+        reservations:
+          cpus: '1'
+          memory: 2G
+    healthcheck:
+      test: ["CMD", "node", "-e", "require('http').get('http://localhost:${PORT:-8080}/', (r) => {process.exit(r.statusCode === 200 ? 0 : 1)})"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    networks:
+      - atomix-network
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  frontend:
+    image: ${REGISTRY}/atomix-vidcodex-frontend:${VERSION}
+    container_name: atomix-frontend
+    restart: unless-stopped
+    read_only: true
+    tmpfs:
+      - /tmp:rw,noexec,nosuid,size=100m
+      - /app/.next/cache:rw,noexec,nosuid,size=200m
+    ports:
+      - "${FRONTEND_PORT:-3000}:${FRONTEND_APP_PORT:-3000}"
+    environment:
+      PORT: ${FRONTEND_APP_PORT:-3000}
+      NODE_ENV: production
+      NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL}
+      NEXT_TELEMETRY_DISABLED: 1
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 2G
+        reservations:
+          cpus: '0.5'
+          memory: 1G
+    healthcheck:
+      test: ["CMD", "node", "-e", "require('http').get('http://localhost:${FRONTEND_APP_PORT:-3000}/', (r) => {process.exit(r.statusCode === 200 ? 0 : 1)})"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    networks:
+      - atomix-network
+    depends_on:
+      backend:
+        condition: service_healthy
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+networks:
+  atomix-network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.28.0.0/16
